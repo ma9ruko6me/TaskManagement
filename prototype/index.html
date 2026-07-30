@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>タスク管理アプリ プロトタイプ</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="app-header">
+  <h1>タスク管理アプリ（プロトタイプ）</h1>
+  <label class="sort-label">
+    並び替え：
+    <select id="sortSelect">
+      <option value="manual">手動（ドラッグ順）</option>
+      <option value="dueDate">期限日が早い順</option>
+      <option value="priority">優先度が高い順</option>
+    </select>
+  </label>
+</header>
+
+<section class="screen">
+  <div class="kanban" id="kanban"></div>
+</section>
+
+<!-- カード詳細モーダル -->
+<div id="cardModalOverlay" class="modal-overlay" hidden>
+  <div class="modal">
+    <button id="closeModalBtn" class="modal-close">×</button>
+    <label class="field-label">タイトル</label>
+    <input type="text" id="modalTitle" class="field-input">
+
+    <label class="field-label">説明</label>
+    <textarea id="modalDescription" class="field-textarea" rows="4"></textarea>
+
+    <div class="field-row">
+      <div class="field-col">
+        <label class="field-label">期限日</label>
+        <input type="date" id="modalDueDate" class="field-input">
+      </div>
+      <div class="field-col">
+        <label class="field-label">優先度</label>
+        <select id="modalPriority" class="field-input">
+          <option value="高">高</option>
+          <option value="中">中</option>
+          <option value="低">低</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button id="deleteCardBtn" class="btn btn-danger">カードを削除</button>
+      <button id="saveCardBtn" class="btn btn-primary">保存して閉じる</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
