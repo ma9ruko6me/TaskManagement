@@ -16,6 +16,8 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
+  flyway:
+    locations: classpath:db/migration,classpath:db/dev-seed
 
 ---
 spring:
