@@ -6,6 +6,7 @@
 |------|-----------|--------------------|--------|
 | 0.1  | 2026-07-31 | 技術スタックを選定・記載 | ー     |
 | 0.2  | 2026-07-31 | Java・Spring Bootのバージョンを最新（Java 25 LTS / Spring Boot 4.1.x）に更新 | ー     |
+| 0.3  | 2026-07-31 | フロントエンド環境構築に伴い、技術スタックを確定版（Tailwind CSS採用、TypeScript 6.x固定、@dnd-kit旧世代採用）に更新 | ー     |
 
 ---
 
@@ -43,13 +44,13 @@
 
 | 項目 | 選定 | 選定理由 |
 |------|------|----------|
-| ビルドツール／言語 | Vite + TypeScript | 指定。高速な開発サーバーと型安全性を両立し、標準的な構成として広く使われている |
+| ビルドツール／言語 | Vite + TypeScript 6.x | Viteは指定。TypeScriptは2026年7月に安定版となった7.0系がtypescript-eslintと非互換（型認識ルールが動作しない）のため、6.x系最新（6.0.3）に固定 |
 | パッケージマネージャ | npm | 追加ツール不要で最も標準的 |
 | HTTPクライアント | axios（fetchでも可） | インターセプターやエラーハンドリングの記述がfetchより簡潔 |
-| ドラッグ&ドロップ | @dnd-kit | react-beautiful-dndはメンテナンス終了のため、後継として広く使われている@dnd-kitを採用 |
-| サーバー状態管理 | TanStack Query（React Query） | カード一覧の取得・キャッシュ・再取得（並び替え反映等）をシンプルに扱える |
-| スタイリング | CSS Modules | プロトタイプ（`prototype/`配下）のCSS構成を踏襲。Tailwind等は将来の選択肢として保留 |
-| Lint/Format | ESLint + Prettier | コード品質・フォーマットの統一 |
+| ドラッグ&ドロップ | @dnd-kit（core / sortable / utilities） | react-beautiful-dndはメンテナンス終了のため後継として採用。新世代パッケージ（@dnd-kit/react等）も存在するがv0.x段階かつ情報量が少ないため、実績のある旧世代構成を採用 |
+| サーバー状態管理 | TanStack Query（React Query） v5系 | カード一覧の取得・キャッシュ・再取得（並び替え反映等）をシンプルに扱える |
+| スタイリング | Tailwind CSS v4系 | 学習教材（動画）に合わせて採用。プロトタイプ（`prototype/`配下）のCSSはそのまま踏襲せず、Tailwindへ移行 |
+| Lint/Format | ESLint（typescript-eslint含む） + Prettier | コード品質・フォーマットの統一。Vite最新テンプレートは既定でoxlintを採用しているが、本プロジェクトではカスタムルールの豊富さを優先しESLintに変更 |
 
 ### 1.3 データベース・インフラ
 
