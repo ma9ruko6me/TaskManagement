@@ -1,4 +1,4 @@
-package com.example.taskmanagement.card;
+package com.example.taskmanagement.task;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -17,11 +17,11 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "card")
+@Table(name = "task")
 @Getter
 @Setter
 @NoArgsConstructor
-public class Card {
+public class Task {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,7 +29,7 @@ public class Card {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private CardStatus status;
+    private TaskStatus status;
 
     @Column(nullable = false)
     private String title;

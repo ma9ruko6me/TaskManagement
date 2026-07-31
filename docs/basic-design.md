@@ -32,7 +32,7 @@
 | フレームワーク | Spring Boot 4.1.x（2026年6月リリース時点の最新） | Java/Springでのデファクトスタンダード。DI・自動設定により最小構成で REST API を構築できる。Java 17以上が必須でJava 26まで対応しており、Java 25と組み合わせ可能 |
 | ビルドツール | Gradle（Groovy DSL） | 指定 |
 | Web | Spring Web（REST API, JSON） | フロントエンド（React）とはREST + JSONで疎結合に連携する |
-| ORM／永続化 | Spring Data JPA + Hibernate | List/Cardのようなシンプルなリレーショナルモデルに対し、ボイラープレートの少ないリポジトリ実装が可能 |
+| ORM／永続化 | Spring Data JPA + Hibernate | List/Taskのようなシンプルなリレーショナルモデルに対し、ボイラープレートの少ないリポジトリ実装が可能 |
 | マイグレーション | Flyway | スキーマ変更をバージョン管理し、変更履歴を学習課題として残せる |
 | バリデーション | spring-boot-starter-validation | タイトル必須・優先度enumなど入力チェックを宣言的に実装できる |
 | API仕様書 | springdoc-openapi（Swagger UI） | フロントエンドと分離開発する際に、API仕様をブラウザから確認・試行できる |
