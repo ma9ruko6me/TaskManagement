@@ -1,4 +1,4 @@
-package com.example.taskmanagement.card;
+package com.example.taskmanagement.task;
 
 public enum Priority {
     HIGH,

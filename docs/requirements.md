@@ -107,17 +107,17 @@ Trello・Notion的なカンバンツールで一般的な機能を一覧化す�
 flowchart TD
     Start([アクセス]) --> Main[メイン画面\nカンバンビュー]
 
-    Main -- カードを追加 --> CardModalNew[カードモーダル\n新規作成]
-    Main -- カードをクリック --> CardModalEdit[カードモーダル\n編集]
+    Main -- カードを追加 --> TaskModalNew[カードモーダル\n新規作成]
+    Main -- カードをクリック --> TaskModalEdit[カードモーダル\n編集]
     Main -- カードをドラッグ&ドロップ --> Main
     Main -- 並び替え条件を変更 --> Main
 
-    CardModalNew -- 保存 --> Main
-    CardModalNew -- 閉じる --> Main
+    TaskModalNew -- 保存 --> Main
+    TaskModalNew -- 閉じる --> Main
 
-    CardModalEdit -- 保存 --> Main
-    CardModalEdit -- 閉じる --> Main
-    CardModalEdit -- カード削除 --> Main
+    TaskModalEdit -- 保存 --> Main
+    TaskModalEdit -- 閉じる --> Main
+    TaskModalEdit -- カード削除 --> Main
 ```
 
 - カード詳細・追加モーダルは、メイン画面上に重なる形（画面遷移を伴わない）を想定。
@@ -125,9 +125,9 @@ flowchart TD
 ## 6. データ項目（確定）
 
 Listは固定3列（未着手／進行中／完了）でありテーブル化する必要がないため、
-LISTテーブルは作成せず、Cardの`status`カラムで表現する。主キーはDB側の自動採番とする。
+LISTテーブルは作成せず、Taskの`status`カラムで表現する。主キーはDB側の自動採番とする。
 
-### Card（カード＝タスク）
+### Task（タスク。UI上は「カード」として表示する）
 | 項目 | 型（PostgreSQL） | 備考 |
 |------|------|------|
 | id | BIGINT（GENERATED ALWAYS AS IDENTITY） | 自動採番の主キー |
@@ -144,7 +144,7 @@ LISTテーブルは作成せず、Cardの`status`カラムで表現する。主�
 
 ```mermaid
 erDiagram
-    CARD {
+    TASK {
         bigint id PK
         string status
         string title
@@ -158,8 +158,8 @@ erDiagram
 ```
 
 - ボード・ユーザー・認証・ボード共有機能は本版のスコープ外（7章「拡張予定」参照）。
-- ラベル（LABEL／CARD_LABEL）はプロトタイプ検証の結果、当面不要と判断し本版ではモデリングしない。
-- チェックリスト・コメント・添付ファイル（3.2節の△項目）はMVP外のため未モデリング。実装する場合は `CHECKLIST_ITEM`（CARDに1対多）、`COMMENT`（CARDに1対多）、`ATTACHMENT`（CARDに1対多）を追加する想定。
+- ラベル（LABEL／TASK_LABEL）はプロトタイプ検証の結果、当面不要と判断し本版ではモデリングしない。
+- チェックリスト・コメント・添付ファイル（3.2節の△項目）はMVP外のため未モデリング。実装する場合は `CHECKLIST_ITEM`（TASKに1対多）、`COMMENT`（TASKに1対多）、`ATTACHMENT`（TASKに1対多）を追加する想定。
 
 ## 7. 制約条件・前提
 

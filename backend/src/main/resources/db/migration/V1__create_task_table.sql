@@ -1,4 +1,4 @@
-CREATE TABLE card (
+CREATE TABLE task (
     id          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     status      VARCHAR(20) NOT NULL CHECK (status IN ('TODO', 'IN_PROGRESS', 'DONE')),
     title       VARCHAR(255) NOT NULL,
