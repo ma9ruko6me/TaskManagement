@@ -8,6 +8,7 @@
 | 0.2  | 2026-07-30 | HTML/CSS/JSプロトタイプでの画面確認を踏まえ、複数ボード管理を廃止し単一カンバン（固定3列）構成に変更。ラベル機能を対象外化、並び替え機能をMVPに格上げ | ー |
 | 0.3  | 2026-07-31 | 技術スタックを選定。詳細は[基本設計書](basic-design.md)に記載 | ー |
 | 0.4  | 2026-07-31 | 技術スタックのバージョン表記を最新（Java 25 LTS / Spring Boot 4.1.x）に更新 | ー |
+| 0.5  | 2026-07-31 | DB実装方針を反映し、データ項目・ER図を確定（LISTテーブル廃止、主キーをDB自動採番に変更、updated_at追加） | ー |
 
 ---
 
@@ -121,47 +122,38 @@ flowchart TD
 
 - カード詳細・追加モーダルは、メイン画面上に重なる形（画面遷移を伴わない）を想定。
 
-## 6. データ項目（案）
+## 6. データ項目（確定）
 
-### List（リスト）
-| 項目 | 型 | 備考 |
-|------|----|------|
-| id | string | 一意識別子 |
-| title | string | 「未着手／進行中／完了」の固定3件 |
-| order | number | 表示順 |
+Listは固定3列（未着手／進行中／完了）でありテーブル化する必要がないため、
+LISTテーブルは作成せず、Cardの`status`カラムで表現する。主キーはDB側の自動採番とする。
 
 ### Card（カード＝タスク）
-| 項目 | 型 | 備考 |
-|------|----|------|
-| id | string | 一意識別子 |
-| listId | string | 所属リスト |
-| title | string | タスク名 |
-| description | string | 詳細説明 |
-| dueDate | date | 期限日 |
-| priority | enum | 高／中／低 |
-| order | number | リスト内の表示順（手動並び替え時に使用） |
-| createdAt | datetime | 作成日時 |
+| 項目 | 型（PostgreSQL） | 備考 |
+|------|------|------|
+| id | BIGINT（GENERATED ALWAYS AS IDENTITY） | 自動採番の主キー |
+| status | VARCHAR + CHECK制約（TODO／IN_PROGRESS／DONE） | 「未着手／進行中／完了」の固定3列を表す |
+| title | VARCHAR NOT NULL | タスク名 |
+| description | TEXT | 詳細説明 |
+| due_date | DATE | 期限日 |
+| priority | VARCHAR + CHECK制約（HIGH／MEDIUM／LOW） | 優先度 |
+| position | INTEGER | リスト内の表示順（手動並び替え時に使用）。`ORDER`はSQL予約語のため`position`とする |
+| created_at | TIMESTAMP NOT NULL DEFAULT now() | 作成日時 |
+| updated_at | TIMESTAMP NOT NULL DEFAULT now() | 更新日時 |
 
-### 6.1 ER図（案）
+### 6.1 ER図（確定）
 
 ```mermaid
 erDiagram
-    LIST ||--o{ CARD : "contains"
-
-    LIST {
-        string id PK
-        string title
-        number order
-    }
     CARD {
-        string id PK
-        string listId FK
+        bigint id PK
+        string status
         string title
         string description
-        date dueDate
+        date due_date
         string priority
-        number order
-        datetime createdAt
+        int position
+        timestamp created_at
+        timestamp updated_at
     }
 ```
 
