@@ -16,8 +16,8 @@ public class TaskService {
 
     public List<TaskResponse> findTasks(TaskStatus status) {
         List<Task> tasks = status == null
-                ? taskRepository.findByDeletedAtIsNullOrderByStatusAscPositionAsc()
-                : taskRepository.findByStatusAndDeletedAtIsNullOrderByPosition(status);
+                ? taskRepository.findByDeletedAtIsNullAndArchivedAtIsNullOrderByStatusAscPositionAsc()
+                : taskRepository.findByStatusAndDeletedAtIsNullAndArchivedAtIsNullOrderByPosition(status);
         return tasks.stream().map(TaskResponse::from).toList();
     }
 
@@ -37,6 +37,9 @@ public class TaskService {
         task.setDueDate(request.dueDate());
         task.setPriority(request.priority());
         task.setPosition(nextPosition);
+        if (status == TaskStatus.DONE) {
+            task.setCompletedAt(LocalDateTime.now());
+        }
 
         Task saved = taskRepository.save(task);
         return TaskResponse.from(saved);
@@ -49,7 +52,7 @@ public class TaskService {
         task.setDescription(request.description());
         task.setDueDate(request.dueDate());
         task.setPriority(request.priority());
-        task.setStatus(request.status());
+        applyStatusTransition(task, request.status());
 
         Task saved = taskRepository.save(task);
         return TaskResponse.from(saved);
@@ -61,22 +64,35 @@ public class TaskService {
         TaskStatus newStatus = request.status();
 
         List<Task> destinationTasks = new ArrayList<>(
-                taskRepository.findByStatusAndDeletedAtIsNullOrderByPosition(newStatus).stream()
+                taskRepository.findByStatusAndDeletedAtIsNullAndArchivedAtIsNullOrderByPosition(newStatus).stream()
                         .filter(t -> !t.getId().equals(id))
                         .toList());
         int targetIndex = Math.max(0, Math.min(request.position(), destinationTasks.size()));
         destinationTasks.add(targetIndex, task);
-        task.setStatus(newStatus);
+        applyStatusTransition(task, newStatus);
         reassignPositions(destinationTasks);
         taskRepository.saveAll(destinationTasks);
 
         if (!oldStatus.equals(newStatus)) {
-            List<Task> sourceTasks = taskRepository.findByStatusAndDeletedAtIsNullOrderByPosition(oldStatus);
+            List<Task> sourceTasks =
+                    taskRepository.findByStatusAndDeletedAtIsNullAndArchivedAtIsNullOrderByPosition(oldStatus);
             reassignPositions(sourceTasks);
             taskRepository.saveAll(sourceTasks);
         }
 
         return TaskResponse.from(task);
+    }
+
+    private void applyStatusTransition(Task task, TaskStatus newStatus) {
+        TaskStatus oldStatus = task.getStatus();
+        if (oldStatus != TaskStatus.DONE && newStatus == TaskStatus.DONE) {
+            task.setCompletedAt(LocalDateTime.now());
+            task.setArchivedAt(null);
+        } else if (oldStatus == TaskStatus.DONE && newStatus != TaskStatus.DONE) {
+            task.setCompletedAt(null);
+            task.setArchivedAt(null);
+        }
+        task.setStatus(newStatus);
     }
 
     public List<TaskResponse> reorderTasks(TaskReorderRequest request) {
@@ -118,6 +134,24 @@ public class TaskService {
 
     public void purgeExpired(LocalDateTime threshold) {
         List<Task> expired = taskRepository.findByDeletedAtIsNotNullAndDeletedAtBefore(threshold);
+        taskRepository.deleteAll(expired);
+    }
+
+    public List<TaskResponse> findCompletedArchive() {
+        return taskRepository.findByArchivedAtIsNotNullOrderByArchivedAtDesc().stream()
+                .map(TaskResponse::from)
+                .toList();
+    }
+
+    public void archiveCompletedTasks() {
+        List<Task> dueForArchive = taskRepository.findByStatusAndArchivedAtIsNullAndDeletedAtIsNull(TaskStatus.DONE);
+        LocalDateTime now = LocalDateTime.now();
+        dueForArchive.forEach(task -> task.setArchivedAt(now));
+        taskRepository.saveAll(dueForArchive);
+    }
+
+    public void purgeExpiredArchive(LocalDateTime threshold) {
+        List<Task> expired = taskRepository.findByArchivedAtIsNotNullAndArchivedAtBefore(threshold);
         taskRepository.deleteAll(expired);
     }
 

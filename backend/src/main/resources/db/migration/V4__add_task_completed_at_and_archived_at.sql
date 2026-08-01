@@ -1,0 +1,2 @@
+ALTER TABLE task ADD COLUMN completed_at TIMESTAMP;
+ALTER TABLE task ADD COLUMN archived_at TIMESTAMP;
