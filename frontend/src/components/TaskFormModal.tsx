@@ -2,8 +2,10 @@ import { isAxiosError } from "axios";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { PRIORITY_LABELS } from "../constants/priority";
 import { useCreateTask } from "../hooks/useCreateTask";
+import { useDeleteTask } from "../hooks/useDeleteTask";
 import { useUpdateTask } from "../hooks/useUpdateTask";
 import type { Priority, Task, TaskStatus } from "../types/task";
+import { ConfirmDialog } from "./ConfirmDialog";
 
 interface TaskFormModalProps {
   open: boolean;
@@ -25,7 +27,9 @@ export function TaskFormModal({ open, onClose, mode, status, task }: TaskFormMod
   const [serverError, setServerError] = useState<string | null>(null);
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
+  const deleteTask = useDeleteTask();
   const isPending = mode === "create" ? createTask.isPending : updateTask.isPending;
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   const [prevOpen, setPrevOpen] = useState(open);
   if (open !== prevOpen) {
@@ -77,6 +81,16 @@ export function TaskFormModal({ open, onClose, mode, status, task }: TaskFormMod
     }
   }
 
+  function handleDeleteClick() {
+    setConfirmDeleteOpen(true);
+  }
+
+  function handleConfirmDelete() {
+    if (!task) return;
+    deleteTask.mutate(task.id, { onSuccess: handleClose });
+    setConfirmDeleteOpen(false);
+  }
+
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
 
@@ -110,84 +124,107 @@ export function TaskFormModal({ open, onClose, mode, status, task }: TaskFormMod
   }
 
   return (
-    <dialog
-      ref={dialogRef}
-      onClose={handleClose}
-      className="m-auto rounded-lg p-0 backdrop:bg-black/40"
-    >
-      <form onSubmit={handleSubmit} className="w-80 p-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          {mode === "create" ? "タスクを追加" : "タスクを編集"}
-        </h2>
+    <>
+      <dialog
+        ref={dialogRef}
+        onClose={handleClose}
+        className="m-auto rounded-lg p-0 backdrop:bg-black/40"
+      >
+        <form onSubmit={handleSubmit} className="w-80 p-4">
+          <h2 className="text-sm font-semibold text-slate-900">
+            {mode === "create" ? "タスクを追加" : "タスクを編集"}
+          </h2>
 
-        <label className="mt-3 block text-xs font-medium text-slate-700">
-          タイトル
-          <input
-            type="text"
-            maxLength={255}
-            value={title}
-            onChange={(e) => {
-              setTitle(e.target.value);
-              setTitleError(null);
-            }}
-            className="mt-1 w-full rounded-md border border-slate-200 px-2 py-1 text-sm text-slate-900"
-          />
-        </label>
-        {titleError && <p className="mt-1 text-xs text-red-600">{titleError}</p>}
+          <label className="mt-3 block text-xs font-medium text-slate-700">
+            タイトル
+            <input
+              type="text"
+              maxLength={255}
+              value={title}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                setTitleError(null);
+              }}
+              className="mt-1 w-full rounded-md border border-slate-200 px-2 py-1 text-sm text-slate-900"
+            />
+          </label>
+          {titleError && <p className="mt-1 text-xs text-red-600">{titleError}</p>}
 
-        <label className="mt-3 block text-xs font-medium text-slate-700">
-          詳細説明
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="mt-1 w-full rounded-md border border-slate-200 px-2 py-1 text-sm text-slate-900"
-          />
-        </label>
+          <label className="mt-3 block text-xs font-medium text-slate-700">
+            詳細説明
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="mt-1 w-full rounded-md border border-slate-200 px-2 py-1 text-sm text-slate-900"
+            />
+          </label>
 
-        <label className="mt-3 block text-xs font-medium text-slate-700">
-          期限日
-          <input
-            type="date"
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-            className="mt-1 w-full rounded-md border border-slate-200 px-2 py-1 text-sm text-slate-900"
-          />
-        </label>
+          <label className="mt-3 block text-xs font-medium text-slate-700">
+            期限日
+            <input
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              className="mt-1 w-full rounded-md border border-slate-200 px-2 py-1 text-sm text-slate-900"
+            />
+          </label>
 
-        <label className="mt-3 block text-xs font-medium text-slate-700">
-          優先度
-          <select
-            value={priority}
-            onChange={(e) => setPriority(e.target.value as Priority)}
-            className="mt-1 w-full rounded-md border border-slate-200 px-2 py-1 text-sm text-slate-900"
-          >
-            {PRIORITY_OPTIONS.map((option) => (
-              <option key={option} value={option}>
-                {PRIORITY_LABELS[option]}
-              </option>
-            ))}
-          </select>
-        </label>
+          <label className="mt-3 block text-xs font-medium text-slate-700">
+            優先度
+            <select
+              value={priority}
+              onChange={(e) => setPriority(e.target.value as Priority)}
+              className="mt-1 w-full rounded-md border border-slate-200 px-2 py-1 text-sm text-slate-900"
+            >
+              {PRIORITY_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {PRIORITY_LABELS[option]}
+                </option>
+              ))}
+            </select>
+          </label>
 
-        {serverError && <p className="mt-3 text-xs text-red-600">{serverError}</p>}
+          {serverError && <p className="mt-3 text-xs text-red-600">{serverError}</p>}
 
-        <div className="mt-4 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={handleClose}
-            className="rounded-md px-3 py-1.5 text-sm text-slate-600"
-          >
-            キャンセル
-          </button>
-          <button
-            type="submit"
-            disabled={isPending}
-            className="rounded-md bg-slate-900 px-3 py-1.5 text-sm text-white disabled:opacity-50"
-          >
-            {mode === "create" ? "追加" : "保存"}
-          </button>
-        </div>
-      </form>
-    </dialog>
+          <div className="mt-4 flex items-center justify-between gap-2">
+            {mode === "edit" ? (
+              <button
+                type="button"
+                onClick={handleDeleteClick}
+                disabled={deleteTask.isPending}
+                className="rounded-md px-3 py-1.5 text-sm text-red-600 disabled:opacity-50"
+              >
+                削除
+              </button>
+            ) : (
+              <span />
+            )}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleClose}
+                className="rounded-md px-3 py-1.5 text-sm text-slate-600"
+              >
+                キャンセル
+              </button>
+              <button
+                type="submit"
+                disabled={isPending}
+                className="rounded-md bg-slate-900 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+              >
+                {mode === "create" ? "追加" : "保存"}
+              </button>
+            </div>
+          </div>
+        </form>
+      </dialog>
+      <ConfirmDialog
+        open={confirmDeleteOpen}
+        title="タスクを削除"
+        message={task ? `「${task.title}」を削除しますか?` : ""}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setConfirmDeleteOpen(false)}
+      />
+    </>
   );
 }

@@ -4,6 +4,10 @@ spring:
   profiles:
     active: dev
 
+task:
+  trash:
+    retention-days: 30
+
 ---
 spring:
   config:

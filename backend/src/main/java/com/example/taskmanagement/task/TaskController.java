@@ -3,6 +3,7 @@ package com.example.taskmanagement.task;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,6 +35,11 @@ public class TaskController {
         return taskService.findById(id);
     }
 
+    @GetMapping("/trash")
+    public List<TaskResponse> findTrash() {
+        return taskService.findTrash();
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public TaskResponse create(@Valid @RequestBody TaskCreateRequest request) {
@@ -49,5 +55,22 @@ public class TaskController {
     public TaskResponse updateStatus(
             @PathVariable Long id, @Valid @RequestBody TaskStatusUpdateRequest request) {
         return taskService.updateStatus(id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        taskService.delete(id);
+    }
+
+    @PostMapping("/{id}/restore")
+    public TaskResponse restore(@PathVariable Long id) {
+        return taskService.restore(id);
+    }
+
+    @DeleteMapping("/{id}/permanent")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void purge(@PathVariable Long id) {
+        taskService.purge(id);
     }
 }
