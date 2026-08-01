@@ -20,3 +20,21 @@ export async function updateTaskStatus(id: number, input: UpdateTaskStatusInput)
   const response = await apiClient.patch<Task>(`/tasks/${id}/status`, input);
   return response.data;
 }
+
+export async function deleteTask(id: number): Promise<void> {
+  await apiClient.delete(`/tasks/${id}`);
+}
+
+export async function fetchTrashTasks(): Promise<Task[]> {
+  const response = await apiClient.get<Task[]>("/tasks/trash");
+  return response.data;
+}
+
+export async function restoreTask(id: number): Promise<Task> {
+  const response = await apiClient.post<Task>(`/tasks/${id}/restore`);
+  return response.data;
+}
+
+export async function permanentlyDeleteTask(id: number): Promise<void> {
+  await apiClient.delete(`/tasks/${id}/permanent`);
+}
