@@ -2,6 +2,8 @@ export type TaskStatus = "TODO" | "IN_PROGRESS" | "DONE";
 
 export type Priority = "HIGH" | "MEDIUM" | "LOW";
 
+export type SortField = "priority" | "dueDate";
+
 export interface Task {
   id: number;
   status: TaskStatus;
@@ -31,6 +33,7 @@ export interface UpdateTaskInput {
   status: TaskStatus;
 }
 
-export interface UpdateTaskStatusInput {
+export interface UpdateTaskPositionInput {
   status: TaskStatus;
+  position: number;
 }

@@ -1,6 +1,7 @@
 package com.example.taskmanagement.task;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
@@ -15,8 +16,8 @@ public class TaskService {
 
     public List<TaskResponse> findTasks(TaskStatus status) {
         List<Task> tasks = status == null
-                ? taskRepository.findByDeletedAtIsNull()
-                : taskRepository.findByStatusAndDeletedAtIsNull(status);
+                ? taskRepository.findByDeletedAtIsNullOrderByStatusAscPositionAsc()
+                : taskRepository.findByStatusAndDeletedAtIsNullOrderByPosition(status);
         return tasks.stream().map(TaskResponse::from).toList();
     }
 
@@ -54,17 +55,41 @@ public class TaskService {
         return TaskResponse.from(saved);
     }
 
-    public TaskResponse updateStatus(Long id, TaskStatusUpdateRequest request) {
+    public TaskResponse updatePosition(Long id, TaskPositionUpdateRequest request) {
         Task task = findActiveTaskOrThrow(id);
-
+        TaskStatus oldStatus = task.getStatus();
         TaskStatus newStatus = request.status();
-        int nextPosition = taskRepository.findMaxPositionByStatus(newStatus) + 1;
 
+        List<Task> destinationTasks = new ArrayList<>(
+                taskRepository.findByStatusAndDeletedAtIsNullOrderByPosition(newStatus).stream()
+                        .filter(t -> !t.getId().equals(id))
+                        .toList());
+        int targetIndex = Math.max(0, Math.min(request.position(), destinationTasks.size()));
+        destinationTasks.add(targetIndex, task);
         task.setStatus(newStatus);
-        task.setPosition(nextPosition);
+        reassignPositions(destinationTasks);
+        taskRepository.saveAll(destinationTasks);
 
-        Task saved = taskRepository.save(task);
-        return TaskResponse.from(saved);
+        if (!oldStatus.equals(newStatus)) {
+            List<Task> sourceTasks = taskRepository.findByStatusAndDeletedAtIsNullOrderByPosition(oldStatus);
+            reassignPositions(sourceTasks);
+            taskRepository.saveAll(sourceTasks);
+        }
+
+        return TaskResponse.from(task);
+    }
+
+    public List<TaskResponse> reorderTasks(TaskReorderRequest request) {
+        List<Task> tasks =
+                request.taskIds().stream().map(this::findActiveTaskOrThrow).toList();
+        reassignPositions(tasks);
+        return taskRepository.saveAll(tasks).stream().map(TaskResponse::from).toList();
+    }
+
+    private void reassignPositions(List<Task> tasks) {
+        for (int i = 0; i < tasks.size(); i++) {
+            tasks.get(i).setPosition(i);
+        }
     }
 
     public void delete(Long id) {

@@ -51,10 +51,15 @@ public class TaskController {
         return taskService.update(id, request);
     }
 
-    @PatchMapping("/{id}/status")
-    public TaskResponse updateStatus(
-            @PathVariable Long id, @Valid @RequestBody TaskStatusUpdateRequest request) {
-        return taskService.updateStatus(id, request);
+    @PatchMapping("/{id}/position")
+    public TaskResponse updatePosition(
+            @PathVariable Long id, @Valid @RequestBody TaskPositionUpdateRequest request) {
+        return taskService.updatePosition(id, request);
+    }
+
+    @PutMapping("/order")
+    public List<TaskResponse> reorder(@Valid @RequestBody TaskReorderRequest request) {
+        return taskService.reorderTasks(request);
     }
 
     @DeleteMapping("/{id}")

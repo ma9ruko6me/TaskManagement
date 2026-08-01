@@ -1,6 +1,4 @@
-import { useDraggable } from "@dnd-kit/core";
-import { CSS } from "@dnd-kit/utilities";
-import { useState, type MouseEvent } from "react";
+import { useState, type DragEvent, type MouseEvent } from "react";
 import { PRIORITY_LABELS, PRIORITY_STYLES } from "../constants/priority";
 import { useDeleteTask } from "../hooks/useDeleteTask";
 import type { Task } from "../types/task";
@@ -13,14 +11,13 @@ function formatDueDate(dueDate: string | null): string {
 
 interface TaskCardProps {
   task: Task;
+  isDragging: boolean;
   onClick?: () => void;
+  onDragStart: (event: DragEvent<HTMLDivElement>) => void;
+  onDragEnd: () => void;
 }
 
-export function TaskCard({ task, onClick }: TaskCardProps) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-    id: task.id,
-  });
-  const style = transform ? { transform: CSS.Translate.toString(transform) } : undefined;
+export function TaskCard({ task, isDragging, onClick, onDragStart, onDragEnd }: TaskCardProps) {
   const deleteTask = useDeleteTask();
   const [confirmOpen, setConfirmOpen] = useState(false);
 
@@ -37,13 +34,13 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
   return (
     <>
       <div
-        ref={setNodeRef}
-        style={style}
-        {...listeners}
-        {...attributes}
+        draggable
+        data-task-id={task.id}
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
         onClick={onClick}
-        className={`group relative cursor-pointer rounded-md border border-slate-200 bg-white p-3 shadow-sm ${
-          isDragging ? "opacity-50" : ""
+        className={`group relative cursor-grab rounded-md border border-slate-200 bg-white p-3 shadow-sm active:cursor-grabbing ${
+          isDragging ? "opacity-40" : ""
         }`}
       >
         <button
@@ -56,9 +53,7 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
         </button>
         <p className="pr-5 text-sm font-medium text-slate-900">{task.title}</p>
         <div className="mt-2 flex items-center justify-between text-xs">
-          <span
-            className={`rounded-full px-2 py-0.5 font-medium ${PRIORITY_STYLES[task.priority]}`}
-          >
+          <span className={`rounded-full px-2 py-0.5 font-medium ${PRIORITY_STYLES[task.priority]}`}>
             {PRIORITY_LABELS[task.priority]}
           </span>
           <span className="text-slate-500">{formatDueDate(task.dueDate)}</span>
