@@ -1,3 +1,5 @@
+import { useDraggable } from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
 import { PRIORITY_LABELS, PRIORITY_STYLES } from "../constants/priority";
 import type { Task } from "../types/task";
 
@@ -8,11 +10,26 @@ function formatDueDate(dueDate: string | null): string {
 
 interface TaskCardProps {
   task: Task;
+  onClick?: () => void;
 }
 
-export function TaskCard({ task }: TaskCardProps) {
+export function TaskCard({ task, onClick }: TaskCardProps) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: task.id,
+  });
+  const style = transform ? { transform: CSS.Translate.toString(transform) } : undefined;
+
   return (
-    <div className="rounded-md border border-slate-200 bg-white p-3 shadow-sm">
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...listeners}
+      {...attributes}
+      onClick={onClick}
+      className={`cursor-pointer rounded-md border border-slate-200 bg-white p-3 shadow-sm ${
+        isDragging ? "opacity-50" : ""
+      }`}
+    >
       <p className="text-sm font-medium text-slate-900">{task.title}</p>
       <div className="mt-2 flex items-center justify-between text-xs">
         <span

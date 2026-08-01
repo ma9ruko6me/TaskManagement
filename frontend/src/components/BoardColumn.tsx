@@ -1,7 +1,8 @@
+import { useDroppable } from "@dnd-kit/core";
 import { useState } from "react";
 import type { Task, TaskStatus } from "../types/task";
-import { CreateTaskModal } from "./CreateTaskModal";
 import { TaskCard } from "./TaskCard";
+import { TaskFormModal } from "./TaskFormModal";
 
 interface BoardColumnProps {
   status: TaskStatus;
@@ -9,11 +10,17 @@ interface BoardColumnProps {
   tasks: Task[];
 }
 
+type ModalState = { mode: "create" } | { mode: "edit"; task: Task } | null;
+
 export function BoardColumn({ status, title, tasks }: BoardColumnProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalState, setModalState] = useState<ModalState>(null);
+  const { setNodeRef, isOver } = useDroppable({ id: status });
 
   return (
-    <div className="flex w-72 shrink-0 flex-col rounded-lg bg-slate-50 p-3">
+    <div
+      ref={setNodeRef}
+      className={`flex w-72 shrink-0 flex-col rounded-lg p-3 ${isOver ? "bg-slate-100" : "bg-slate-50"}`}
+    >
       <div className="mb-3 flex items-center justify-between px-1">
         <h2 className="text-sm font-semibold text-slate-700">{title}</h2>
         <div className="flex items-center gap-2">
@@ -22,7 +29,7 @@ export function BoardColumn({ status, title, tasks }: BoardColumnProps) {
           </span>
           <button
             type="button"
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => setModalState({ mode: "create" })}
             className="rounded-md px-1.5 text-sm font-medium text-slate-500 hover:bg-slate-200"
             aria-label={`${title}にタスクを追加`}
           >
@@ -34,13 +41,17 @@ export function BoardColumn({ status, title, tasks }: BoardColumnProps) {
         {tasks.length === 0 ? (
           <p className="px-1 text-xs text-slate-400">タスクがありません</p>
         ) : (
-          tasks.map((task) => <TaskCard key={task.id} task={task} />)
+          tasks.map((task) => (
+            <TaskCard key={task.id} task={task} onClick={() => setModalState({ mode: "edit", task })} />
+          ))
         )}
       </div>
-      <CreateTaskModal
-        open={isModalOpen}
-        status={status}
-        onClose={() => setIsModalOpen(false)}
+      <TaskFormModal
+        open={modalState !== null}
+        mode={modalState?.mode ?? "create"}
+        status={modalState?.mode === "edit" ? modalState.task.status : status}
+        task={modalState?.mode === "edit" ? modalState.task : undefined}
+        onClose={() => setModalState(null)}
       />
     </div>
   );
