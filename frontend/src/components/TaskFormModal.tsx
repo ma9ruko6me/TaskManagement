@@ -2,17 +2,20 @@ import { isAxiosError } from "axios";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { PRIORITY_LABELS } from "../constants/priority";
 import { useCreateTask } from "../hooks/useCreateTask";
-import type { Priority, TaskStatus } from "../types/task";
+import { useUpdateTask } from "../hooks/useUpdateTask";
+import type { Priority, Task, TaskStatus } from "../types/task";
 
-interface CreateTaskModalProps {
+interface TaskFormModalProps {
   open: boolean;
-  status: TaskStatus;
   onClose: () => void;
+  mode: "create" | "edit";
+  status: TaskStatus;
+  task?: Task;
 }
 
 const PRIORITY_OPTIONS: Priority[] = ["HIGH", "MEDIUM", "LOW"];
 
-export function CreateTaskModal({ open, status, onClose }: CreateTaskModalProps) {
+export function TaskFormModal({ open, onClose, mode, status, task }: TaskFormModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -21,6 +24,28 @@ export function CreateTaskModal({ open, status, onClose }: CreateTaskModalProps)
   const [titleError, setTitleError] = useState<string | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
   const createTask = useCreateTask();
+  const updateTask = useUpdateTask();
+  const isPending = mode === "create" ? createTask.isPending : updateTask.isPending;
+
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) {
+      if (mode === "edit" && task) {
+        setTitle(task.title);
+        setDescription(task.description ?? "");
+        setDueDate(task.dueDate ?? "");
+        setPriority(task.priority);
+      } else {
+        setTitle("");
+        setDescription("");
+        setDueDate("");
+        setPriority("MEDIUM");
+      }
+      setTitleError(null);
+      setServerError(null);
+    }
+  }
 
   useEffect(() => {
     if (open) {
@@ -44,6 +69,14 @@ export function CreateTaskModal({ open, status, onClose }: CreateTaskModalProps)
     onClose();
   }
 
+  function handleServerError(err: unknown) {
+    if (isAxiosError(err) && typeof err.response?.data === "string") {
+      setServerError(err.response.data);
+    } else {
+      setServerError(mode === "create" ? "タスクの作成に失敗しました。" : "タスクの更新に失敗しました。");
+    }
+  }
+
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
 
@@ -52,25 +85,28 @@ export function CreateTaskModal({ open, status, onClose }: CreateTaskModalProps)
       return;
     }
 
-    createTask.mutate(
-      {
-        title,
-        description: description === "" ? null : description,
-        dueDate: dueDate === "" ? null : dueDate,
-        priority,
-        status,
-      },
-      {
+    const payload = {
+      title,
+      description: description === "" ? null : description,
+      dueDate: dueDate === "" ? null : dueDate,
+      priority,
+      status,
+    };
+
+    if (mode === "create") {
+      createTask.mutate(payload, {
         onSuccess: handleClose,
-        onError: (err) => {
-          if (isAxiosError(err) && typeof err.response?.data === "string") {
-            setServerError(err.response.data);
-          } else {
-            setServerError("タスクの作成に失敗しました。");
-          }
+        onError: handleServerError,
+      });
+    } else if (task) {
+      updateTask.mutate(
+        { id: task.id, input: payload },
+        {
+          onSuccess: handleClose,
+          onError: handleServerError,
         },
-      },
-    );
+      );
+    }
   }
 
   return (
@@ -80,7 +116,9 @@ export function CreateTaskModal({ open, status, onClose }: CreateTaskModalProps)
       className="m-auto rounded-lg p-0 backdrop:bg-black/40"
     >
       <form onSubmit={handleSubmit} className="w-80 p-4">
-        <h2 className="text-sm font-semibold text-slate-900">タスクを追加</h2>
+        <h2 className="text-sm font-semibold text-slate-900">
+          {mode === "create" ? "タスクを追加" : "タスクを編集"}
+        </h2>
 
         <label className="mt-3 block text-xs font-medium text-slate-700">
           タイトル
@@ -143,10 +181,10 @@ export function CreateTaskModal({ open, status, onClose }: CreateTaskModalProps)
           </button>
           <button
             type="submit"
-            disabled={createTask.isPending}
+            disabled={isPending}
             className="rounded-md bg-slate-900 px-3 py-1.5 text-sm text-white disabled:opacity-50"
           >
-            追加
+            {mode === "create" ? "追加" : "保存"}
           </button>
         </div>
       </form>

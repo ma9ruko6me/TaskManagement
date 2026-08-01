@@ -39,4 +39,30 @@ public class TaskService {
         Task saved = taskRepository.save(task);
         return TaskResponse.from(saved);
     }
+
+    public TaskResponse update(Long id, TaskUpdateRequest request) {
+        Task task = taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(id));
+
+        task.setTitle(request.title());
+        task.setDescription(request.description());
+        task.setDueDate(request.dueDate());
+        task.setPriority(request.priority());
+        task.setStatus(request.status());
+
+        Task saved = taskRepository.save(task);
+        return TaskResponse.from(saved);
+    }
+
+    public TaskResponse updateStatus(Long id, TaskStatusUpdateRequest request) {
+        Task task = taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(id));
+
+        TaskStatus newStatus = request.status();
+        int nextPosition = taskRepository.findMaxPositionByStatus(newStatus) + 1;
+
+        task.setStatus(newStatus);
+        task.setPosition(nextPosition);
+
+        Task saved = taskRepository.save(task);
+        return TaskResponse.from(saved);
+    }
 }
