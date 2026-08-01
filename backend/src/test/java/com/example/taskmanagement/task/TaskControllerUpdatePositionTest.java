@@ -1,6 +1,7 @@
 package com.example.taskmanagement.task;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -25,7 +26,7 @@ import tools.jackson.databind.ObjectMapper;
 @AutoConfigureMockMvc
 @TestPropertySource(properties = "spring.flyway.locations=classpath:db/migration")
 @Transactional
-class TaskControllerUpdateStatusTest {
+class TaskControllerUpdatePositionTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -48,44 +49,55 @@ class TaskControllerUpdateStatusTest {
     }
 
     @Test
-    void movesTaskToTargetStatusAndAppendsToEnd() throws Exception {
-        createTask("既存1", TaskStatus.IN_PROGRESS);
-        createTask("既存2", TaskStatus.IN_PROGRESS);
-        Long id = createTask("移動対象", TaskStatus.TODO);
+    void reordersWithinSameColumn() throws Exception {
+        Long a = createTask("A", TaskStatus.TODO);
+        Long b = createTask("B", TaskStatus.TODO);
+        createTask("C", TaskStatus.TODO);
 
-        String requestBody = objectMapper.writeValueAsString(new TaskStatusUpdateRequest(TaskStatus.IN_PROGRESS));
+        String requestBody =
+                objectMapper.writeValueAsString(new TaskPositionUpdateRequest(TaskStatus.TODO, 0));
 
         mockMvc.perform(
-                        patch("/api/tasks/" + id + "/status")
+                        patch("/api/tasks/" + b + "/position")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(requestBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.position").value(0));
+
+        mockMvc.perform(get("/api/tasks").param("status", "TODO"))
+                .andExpect(jsonPath("$[0].id").value(b))
+                .andExpect(jsonPath("$[1].id").value(a));
+    }
+
+    @Test
+    void movesAcrossColumnsAndClosesGapInSourceColumn() throws Exception {
+        Long a = createTask("A", TaskStatus.TODO);
+        Long b = createTask("B", TaskStatus.TODO);
+        createTask("C", TaskStatus.IN_PROGRESS);
+
+        String requestBody =
+                objectMapper.writeValueAsString(new TaskPositionUpdateRequest(TaskStatus.IN_PROGRESS, 0));
+
+        mockMvc.perform(
+                        patch("/api/tasks/" + a + "/position")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestBody))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("IN_PROGRESS"))
-                .andExpect(jsonPath("$.position").value(2));
-    }
+                .andExpect(jsonPath("$.position").value(0));
 
-    @Test
-    void updatesOnlyStatusAndPositionLeavesOtherFieldsUnchanged() throws Exception {
-        Long id = createTask("対象タスク", TaskStatus.TODO);
-
-        String requestBody = objectMapper.writeValueAsString(new TaskStatusUpdateRequest(TaskStatus.DONE));
-
-        mockMvc.perform(
-                        patch("/api/tasks/" + id + "/status")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(requestBody))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value("対象タスク"))
-                .andExpect(jsonPath("$.description").value("説明"))
-                .andExpect(jsonPath("$.priority").value("MEDIUM"));
+        mockMvc.perform(get("/api/tasks").param("status", "TODO"))
+                .andExpect(jsonPath("$[0].id").value(b))
+                .andExpect(jsonPath("$[0].position").value(0));
     }
 
     @Test
     void returnsNotFoundWhenTaskDoesNotExist() throws Exception {
-        String requestBody = objectMapper.writeValueAsString(new TaskStatusUpdateRequest(TaskStatus.DONE));
+        String requestBody =
+                objectMapper.writeValueAsString(new TaskPositionUpdateRequest(TaskStatus.DONE, 0));
 
         mockMvc.perform(
-                        patch("/api/tasks/999999/status")
+                        patch("/api/tasks/999999/position")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestBody))
                 .andExpect(status().isNotFound());
@@ -95,13 +107,31 @@ class TaskControllerUpdateStatusTest {
     void rejectsMissingStatus() throws Exception {
         Long id = createTask("対象タスク", TaskStatus.TODO);
 
-        String requestBody = "{}";
+        String requestBody = """
+                {"position": 0}
+                """;
 
         mockMvc.perform(
-                        patch("/api/tasks/" + id + "/status")
+                        patch("/api/tasks/" + id + "/position")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestBody))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string(containsString("status")));
+    }
+
+    @Test
+    void rejectsNegativePosition() throws Exception {
+        Long id = createTask("対象タスク", TaskStatus.TODO);
+
+        String requestBody = """
+                {"status": "TODO", "position": -1}
+                """;
+
+        mockMvc.perform(
+                        patch("/api/tasks/" + id + "/position")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(requestBody))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(containsString("position")));
     }
 }

@@ -11,3 +11,9 @@ export const PRIORITY_LABELS: Record<Priority, string> = {
   MEDIUM: "中",
   LOW: "低",
 };
+
+export const PRIORITY_ORDER: Record<Priority, number> = {
+  HIGH: 0,
+  MEDIUM: 1,
+  LOW: 2,
+};

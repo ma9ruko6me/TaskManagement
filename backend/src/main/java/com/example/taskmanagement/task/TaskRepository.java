@@ -8,9 +8,9 @@ import org.springframework.data.repository.query.Param;
 
 public interface TaskRepository extends JpaRepository<Task, Long> {
 
-    List<Task> findByStatusAndDeletedAtIsNull(TaskStatus status);
+    List<Task> findByStatusAndDeletedAtIsNullOrderByPosition(TaskStatus status);
 
-    List<Task> findByDeletedAtIsNull();
+    List<Task> findByDeletedAtIsNullOrderByStatusAscPositionAsc();
 
     List<Task> findByDeletedAtIsNotNullOrderByDeletedAtDesc();
 
