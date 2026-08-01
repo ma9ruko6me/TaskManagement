@@ -13,7 +13,9 @@ public record TaskResponse(
         Integer position,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
-        LocalDateTime deletedAt) {
+        LocalDateTime deletedAt,
+        LocalDateTime completedAt,
+        LocalDateTime archivedAt) {
 
     public static TaskResponse from(Task task) {
         return new TaskResponse(
@@ -26,6 +28,8 @@ public record TaskResponse(
                 task.getPosition(),
                 task.getCreatedAt(),
                 task.getUpdatedAt(),
-                task.getDeletedAt());
+                task.getDeletedAt(),
+                task.getCompletedAt(),
+                task.getArchivedAt());
     }
 }

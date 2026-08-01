@@ -7,6 +7,8 @@ spring:
 task:
   trash:
     retention-days: 30
+  archive:
+    retention-days: 30
 
 ---
 spring:

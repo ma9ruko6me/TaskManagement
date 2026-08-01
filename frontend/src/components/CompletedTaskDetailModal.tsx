@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
 import { PRIORITY_LABELS } from "../constants/priority";
-import { STATUS_LABELS } from "../constants/status";
-import type { Task } from "../types/task";
+import type { Task, TaskStatus } from "../types/task";
 
 function formatDateTime(value: string | null): string {
   if (!value) return "-";
@@ -13,19 +12,13 @@ function formatDueDate(dueDate: string | null): string {
   return dueDate.replaceAll("-", "/");
 }
 
-interface TrashTaskDetailModalProps {
+interface CompletedTaskDetailModalProps {
   task: Task | null;
   onClose: () => void;
-  onRestore: (id: number) => void;
-  onPermanentDelete: (task: Task) => void;
+  onChangeStatus: (task: Task, status: TaskStatus) => void;
 }
 
-export function TrashTaskDetailModal({
-  task,
-  onClose,
-  onRestore,
-  onPermanentDelete,
-}: TrashTaskDetailModalProps) {
+export function CompletedTaskDetailModal({ task, onClose, onChangeStatus }: CompletedTaskDetailModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -55,10 +48,6 @@ export function TrashTaskDetailModal({
             </div>
             <div className="flex gap-6">
               <div>
-                <dt className="text-xs font-medium text-slate-500">ステータス</dt>
-                <dd className="mt-1 text-slate-900">{STATUS_LABELS[task.status]}</dd>
-              </div>
-              <div>
                 <dt className="text-xs font-medium text-slate-500">優先度</dt>
                 <dd className="mt-1 text-slate-900">{PRIORITY_LABELS[task.priority]}</dd>
               </div>
@@ -68,33 +57,29 @@ export function TrashTaskDetailModal({
               </div>
             </div>
             <div>
-              <dt className="text-xs font-medium text-slate-500">削除日時</dt>
-              <dd className="mt-1 text-slate-900">{formatDateTime(task.deletedAt)}</dd>
+              <dt className="text-xs font-medium text-slate-500">完了日時</dt>
+              <dd className="mt-1 text-slate-900">{formatDateTime(task.completedAt)}</dd>
             </div>
           </dl>
 
           <div className="mt-4 flex items-center justify-between gap-2">
-            <button
-              type="button"
-              onClick={() => onPermanentDelete(task)}
-              className="rounded-md px-3 py-1.5 text-sm text-red-600"
-            >
-              完全に削除
+            <button type="button" onClick={onClose} className="rounded-md px-3 py-1.5 text-sm text-slate-600">
+              閉じる
             </button>
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={onClose}
-                className="rounded-md px-3 py-1.5 text-sm text-slate-600"
+                onClick={() => onChangeStatus(task, "TODO")}
+                className="rounded-md px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100"
               >
-                閉じる
+                未着手に戻す
               </button>
               <button
                 type="button"
-                onClick={() => onRestore(task.id)}
+                onClick={() => onChangeStatus(task, "IN_PROGRESS")}
                 className="rounded-md bg-slate-900 px-3 py-1.5 text-sm text-white"
               >
-                復元
+                進行中に戻す
               </button>
             </div>
           </div>

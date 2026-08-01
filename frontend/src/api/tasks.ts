@@ -43,3 +43,8 @@ export async function restoreTask(id: number): Promise<Task> {
 export async function permanentlyDeleteTask(id: number): Promise<void> {
   await apiClient.delete(`/tasks/${id}/permanent`);
 }
+
+export async function fetchCompletedTasks(): Promise<Task[]> {
+  const response = await apiClient.get<Task[]>("/tasks/completed");
+  return response.data;
+}

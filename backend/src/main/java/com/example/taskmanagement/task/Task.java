@@ -55,6 +55,12 @@ public class Task {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
+    @Column(name = "completed_at")
+    private LocalDateTime completedAt;
+
+    @Column(name = "archived_at")
+    private LocalDateTime archivedAt;
+
     @PrePersist
     void onCreate() {
         LocalDateTime now = LocalDateTime.now();

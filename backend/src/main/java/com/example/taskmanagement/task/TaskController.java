@@ -40,6 +40,11 @@ public class TaskController {
         return taskService.findTrash();
     }
 
+    @GetMapping("/completed")
+    public List<TaskResponse> findCompletedArchive() {
+        return taskService.findCompletedArchive();
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public TaskResponse create(@Valid @RequestBody TaskCreateRequest request) {

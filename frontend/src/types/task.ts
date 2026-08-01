@@ -15,6 +15,8 @@ export interface Task {
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
+  completedAt: string | null;
+  archivedAt: string | null;
 }
 
 export interface CreateTaskInput {

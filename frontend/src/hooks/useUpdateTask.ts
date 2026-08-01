@@ -8,6 +8,7 @@ export function useUpdateTask() {
     mutationFn: ({ id, input }: { id: number; input: UpdateTaskInput }) => updateTask(id, input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["completed"] });
     },
   });
 }
