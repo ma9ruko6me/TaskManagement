@@ -23,4 +23,20 @@ public class TaskService {
         Task task = taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(id));
         return TaskResponse.from(task);
     }
+
+    public TaskResponse create(TaskCreateRequest request) {
+        TaskStatus status = request.status() != null ? request.status() : TaskStatus.TODO;
+        int nextPosition = taskRepository.findMaxPositionByStatus(status) + 1;
+
+        Task task = new Task();
+        task.setStatus(status);
+        task.setTitle(request.title());
+        task.setDescription(request.description());
+        task.setDueDate(request.dueDate());
+        task.setPriority(request.priority());
+        task.setPosition(nextPosition);
+
+        Task saved = taskRepository.save(task);
+        return TaskResponse.from(saved);
+    }
 }

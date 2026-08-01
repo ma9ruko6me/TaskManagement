@@ -42,6 +42,7 @@ export function Board() {
       {COLUMNS.map((column) => (
         <BoardColumn
           key={column.status}
+          status={column.status}
           title={column.title}
           tasks={grouped[column.status]}
         />
