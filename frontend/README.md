@@ -1,32 +1,40 @@
-# React + TypeScript + Vite
+# TaskManagement Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+TaskManagementのフロントエンド。React + Vite + TypeScriptで構築したカンバンボードUI。バックエンド（Spring Boot, `http://localhost:8080`）のREST APIと連携する。全体像は[ルートREADME](../README.md)、技術選定の詳細は[docs/basic-design.md](../docs/basic-design.md)を参照。
 
-Currently, two official plugins are available:
+## セットアップ・起動
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+バックエンド（ポート8080）が起動している状態で、以下を実行する。
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+`http://localhost:5173/` にアクセスするとカンバンボードが表示される。バックエンドの起動方法はルートREADMEを参照。
+
+## npm scripts
+
+| コマンド | 内容 |
+|---------|------|
+| `npm run dev` | 開発サーバーを起動（Vite, ポート5173） |
+| `npm run build` | 型チェック（`tsc -b`）を行い本番ビルドを生成 |
+| `npm run lint` | ESLintでコードを検査 |
+| `npm run format` | Prettierでコードを整形 |
+| `npm run preview` | 本番ビルドをローカルでプレビュー |
+
+## 主な依存関係
+
+| 種別 | 内容 |
+|------|------|
+| フレームワーク | React 19 |
+| ビルドツール | Vite |
+| 言語 | TypeScript（~6.0.3固定。typescript-eslintとの互換性のため7.0系は未使用） |
+| サーバー状態管理 | TanStack Query v5 |
+| HTTPクライアント | axios |
+| スタイリング | Tailwind CSS v4 |
+| Lint/Format | ESLint（typescript-eslint含む）+ Prettier |
+
+## ディレクトリ構成
+
+主要なソースは`src/`配下。コンポーネント・フック・API呼び出し・型定義の構成は[docs/basic-design.md 4.2節](../docs/basic-design.md#42-フロントエンドfrontend)を参照。
