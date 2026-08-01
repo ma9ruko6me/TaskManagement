@@ -46,7 +46,7 @@
 | ビルドツール／言語 | Vite + TypeScript 6.x | Viteは指定。TypeScriptは2026年7月に安定版となった7.0系がtypescript-eslintと非互換（型認識ルールが動作しない）のため、6.x系最新（6.0.3）に固定 |
 | パッケージマネージャ | npm | 追加ツール不要で最も標準的 |
 | HTTPクライアント | axios（fetchでも可） | インターセプターやエラーハンドリングの記述がfetchより簡潔 |
-| ドラッグ&ドロップ | @dnd-kit（core / sortable / utilities） | react-beautiful-dndはメンテナンス終了のため後継として採用。新世代パッケージ（@dnd-kit/react等）も存在するがv0.x段階かつ情報量が少ないため、実績のある旧世代構成を採用 |
+| ドラッグ&ドロップ | HTML5 Drag and Drop API（ネイティブ） | カード・列単位の並び替えという要件に対し外部ライブラリは必須ではないため、`draggable`属性とネイティブのdrag系イベント（`dragstart`/`dragover`/`drop`等）で実装し依存を増やさない |
 | サーバー状態管理 | TanStack Query（React Query） v5系 | カード一覧の取得・キャッシュ・再取得（並び替え反映等）をシンプルに扱える |
 | スタイリング | Tailwind CSS v4系 | 学習教材（動画）に合わせて採用。プロトタイプ（`prototype/`配下）のCSSはそのまま踏襲せず、Tailwindへ移行 |
 | Lint/Format | ESLint（typescript-eslint含む） + Prettier | コード品質・フォーマットの統一。Vite最新テンプレートは既定でoxlintを採用しているが、本プロジェクトではカスタムルールの豊富さを優先しESLintに変更 |
@@ -61,8 +61,7 @@
 
 ## 2. API設計
 
-現時点では[要件定義書](requirements.md)の◎項目のうち、タスク一覧・検索（読み取り）およびタスク作成を実装済み。
-更新・削除・並び替えのAPIは今後実装予定。
+[要件定義書](requirements.md)の◎項目に対応するタスクの一覧・検索・作成・更新・並び替え・削除（ゴミ箱／復元／完全削除）・完了アーカイブ表示を実装済み。
 
 ベースURL: `http://localhost:8080/api`
 
@@ -70,9 +69,17 @@
 
 | メソッド | パス | 概要 |
 |---------|------|------|
-| GET | `/tasks` | タスク一覧を取得する。`status`クエリパラメータで絞り込み可能 |
+| GET | `/tasks` | タスク一覧を取得する。`status`クエリパラメータで絞り込み可能（削除済み・アーカイブ済みは含まない） |
 | GET | `/tasks/{id}` | タスクを1件取得する |
+| GET | `/tasks/trash` | ゴミ箱（削除済み）タスクの一覧を取得する |
+| GET | `/tasks/completed` | 完了タスクのアーカイブ一覧を取得する |
 | POST | `/tasks` | タスクを1件作成する |
+| PUT | `/tasks/{id}` | タスクを1件更新する |
+| PATCH | `/tasks/{id}/position` | タスクの`status`・`position`を更新する（列間ドラッグ&ドロップ） |
+| PUT | `/tasks/order` | 同一列内のタスクを指定した順序に並び替える |
+| DELETE | `/tasks/{id}` | タスクを削除する（論理削除、ゴミ箱に移動） |
+| POST | `/tasks/{id}/restore` | ゴミ箱のタスクを復元する |
+| DELETE | `/tasks/{id}/permanent` | タスクを完全削除する |
 
 ### 2.2 GET /tasks
 
@@ -132,7 +139,62 @@
 
 バリデーションエラー（`title`未入力、`priority`不正値など）の場合は`400 Bad Request`（本文はエラーメッセージの文字列）を返す。
 
-### 2.5 API仕様書（Swagger UI）
+### 2.5 PUT /tasks/{id}
+
+リクエストボディ:
+
+| フィールド | 必須 | 内容 |
+|-----------|------|------|
+| title | 必須 | タスク名（最大255文字） |
+| description | 任意 | 詳細説明 |
+| dueDate | 任意 | 期限日（`YYYY-MM-DD`） |
+| priority | 必須 | `HIGH`／`MEDIUM`／`LOW` |
+| status | 必須 | `TODO`／`IN_PROGRESS`／`DONE` |
+
+`id`／`position`／`createdAt`／`updatedAt`はリクエストボディで指定不可。レスポンスは2.2節のオブジェクトと同形式。存在しない`id`を指定した場合は`404 Not Found`を返す。
+
+### 2.6 PATCH /tasks/{id}/position
+
+カンバン上での列間ドラッグ&ドロップにより、タスクの所属列（`status`）と列内の挿入位置（`position`）を更新する。
+
+リクエストボディ:
+
+| フィールド | 必須 | 内容 |
+|-----------|------|------|
+| status | 必須 | 移動先の`TODO`／`IN_PROGRESS`／`DONE` |
+| position | 必須 | 移動先列内での挿入位置（0以上の整数） |
+
+レスポンスは2.2節のオブジェクトと同形式。
+
+### 2.7 PUT /tasks/order
+
+同一列内でのドラッグ&ドロップによる並び替え。指定した`taskIds`の順序どおりに、対象タスク群の`position`を振り直す。
+
+リクエストボディ:
+
+| フィールド | 必須 | 内容 |
+|-----------|------|------|
+| taskIds | 必須（1件以上） | 並び替え後の順序で並べたタスクIDの配列 |
+
+レスポンス（200 OK）は更新後のタスク一覧（2.2節のオブジェクトの配列）。
+
+### 2.8 DELETE /tasks/{id} ／ POST /tasks/{id}/restore ／ DELETE /tasks/{id}/permanent
+
+タスクの削除は論理削除で、削除時点で`deletedAt`が設定されゴミ箱（`GET /tasks/trash`）に表示される。
+
+| メソッド | パス | 内容 |
+|---------|------|------|
+| DELETE | `/tasks/{id}` | タスクを論理削除する（`204 No Content`） |
+| POST | `/tasks/{id}/restore` | ゴミ箱のタスクを復元し、`deletedAt`をクリアする（`200 OK`、更新後のタスクを返す） |
+| DELETE | `/tasks/{id}/permanent` | タスクをデータベースから完全に削除する（`204 No Content`、復元不可） |
+
+いずれも存在しない`id`を指定した場合は`404 Not Found`を返す。
+
+### 2.9 GET /tasks/completed
+
+タスクを`DONE`に更新すると`completedAt`が設定される。一定期間経過後（または任意のタイミングで）アーカイブ対象となったタスクは`archivedAt`が設定され、通常のボード表示（`GET /tasks`）からは除外され、本エンドポイントの一覧にのみ表示される。表示・保持期間の仕様詳細は[要件定義書](requirements.md)を参照。
+
+### 2.10 API仕様書（Swagger UI）
 
 springdoc-openapiにより、バックエンド起動後に以下で仕様を確認・試行できる。
 
@@ -192,24 +254,28 @@ backend/src/main/resources/
 
 ```
 frontend/src/
-├── main.tsx           # エントリポイント（TanStack Query の QueryClientProvider を設定）
-├── App.tsx            # ルートコンポーネント
+├── main.tsx                       # エントリポイント（TanStack Query の QueryClientProvider を設定）
+├── App.tsx                        # ルートコンポーネント
 ├── components/
-│   ├── Board.tsx       # カンバンボード全体（3列を並べる）
-│   ├── BoardColumn.tsx # 1列分（未着手／進行中／完了）
-│   └── TaskCard.tsx    # タスク1件分のカード表示
-├── hooks/
-│   └── useTasks.ts     # TanStack Query によるタスク一覧取得フック
+│   ├── Board.tsx                   # カンバンボード全体（3列を並べる、ドラッグ&ドロップ制御）
+│   ├── BoardColumn.tsx             # 1列分（未着手／進行中／完了）
+│   ├── TaskCard.tsx                # タスク1件分のカード表示
+│   ├── TaskFormModal.tsx           # タスクの作成・編集モーダル
+│   ├── ConfirmDialog.tsx           # 削除等の確認ダイアログ
+│   ├── TrashView.tsx               # ゴミ箱（削除済みタスク）一覧
+│   ├── TrashTaskDetailModal.tsx    # ゴミ箱タスクの詳細（復元・完全削除）
+│   ├── CompletedView.tsx           # 完了タスクのアーカイブ一覧
+│   └── CompletedTaskDetailModal.tsx # 完了アーカイブタスクの詳細
+├── hooks/                          # TanStack Query によるAPI呼び出しフック（一覧取得・作成・更新・削除・復元・並び替え等）
 ├── api/
-│   ├── client.ts        # axiosインスタンス（baseURL設定）
-│   └── tasks.ts          # タスクAPI呼び出し関数
+│   ├── client.ts                   # axiosインスタンス（baseURL設定）
+│   └── tasks.ts                    # タスクAPI呼び出し関数
+├── constants/                      # status・priorityの表示ラベル等
+├── utils/                          # 並び替え等のユーティリティ関数
 └── types/
-    └── task.ts           # Task型・TaskStatus型・Priority型
+    └── task.ts                     # Task型・TaskStatus型・Priority型
 ```
 
 ## 5. 今後追記する予定の項目
 
-本書は基本設計フェーズの成果物を追記していく前提の器として作成した。今後、以下を追記予定。
-
-- タスクの更新・削除・並び替えAPI（ドラッグ&ドロップ対応）の設計
-- カード詳細のフロントエンド設計
+本書は基本設計フェーズの成果物を追記していく前提の器として作成した。要件定義書の◎項目に対応する主要機能は実装済みのため、今後は運用・改善に応じて随時追記する。

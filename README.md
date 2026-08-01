@@ -2,21 +2,23 @@
 
 Trello風のカンバン方式によるタスク管理Webアプリケーション。個人（単一ユーザー・単一カンバン）での利用を前提に、学習課題として開発している。
 
-「未着手／進行中／完了」の固定3列でタスク（カード）を管理し、ドラッグ&ドロップでの並び替えを行えることを目指す。詳細な背景・機能要件は [docs/requirements.md](docs/requirements.md) を参照。
+「未着手／進行中／完了」の固定3列でタスク（カード）を管理し、ドラッグ&ドロップでの並び替えを行える。タスクの作成・編集・削除に加え、削除したタスクをゴミ箱で復元・完全削除する機能、完了済みタスクをアーカイブとして一覧確認する機能を備える。詳細な背景・機能要件は [docs/requirements.md](docs/requirements.md) を参照。
 
 ## ドキュメント
 
 | ドキュメント | 内容 |
 |--------------|------|
 | [docs/requirements.md](docs/requirements.md) | 要件定義書。想定利用者、機能要件、データ項目・ER図など |
+| [docs/requirements-changelog.md](docs/requirements-changelog.md) | 要件定義書の改訂履歴 |
 | [docs/basic-design.md](docs/basic-design.md) | 基本設計書。技術スタック、API設計、DB物理設計、ディレクトリ構成 |
+| [docs/basic-design-changelog.md](docs/basic-design-changelog.md) | 基本設計書の改訂履歴 |
 
 ## 技術スタック
 
 | 領域 | 技術 |
 |------|------|
 | バックエンド | Java 25 (LTS) / Spring Boot 4.1.x / Gradle / Spring Data JPA / Flyway |
-| フロントエンド | React 19 / Vite / TypeScript 6.x / Tailwind CSS v4 / TanStack Query / @dnd-kit |
+| フロントエンド | React 19 / Vite / TypeScript 6.x / Tailwind CSS v4 / TanStack Query / HTML5 Drag and Drop API |
 | データベース | PostgreSQL 17（Docker Compose で起動） |
 
 選定理由の詳細は [docs/basic-design.md](docs/basic-design.md) を参照。
@@ -77,14 +79,21 @@ npm run dev
 
 ## API
 
-現時点ではタスク一覧・検索（読み取り）のみ実装済み。
-
 | メソッド | パス | 概要 |
 |---------|------|------|
 | GET | `/api/tasks` | タスク一覧を取得（`status`クエリパラメータで絞り込み可能） |
 | GET | `/api/tasks/{id}` | タスクを1件取得 |
+| GET | `/api/tasks/trash` | ゴミ箱（削除済みタスク）の一覧を取得 |
+| GET | `/api/tasks/completed` | 完了タスクのアーカイブ一覧を取得 |
+| POST | `/api/tasks` | タスクを作成 |
+| PUT | `/api/tasks/{id}` | タスクを更新 |
+| PATCH | `/api/tasks/{id}/position` | タスクのステータス・並び順を更新（列間ドラッグ&ドロップ） |
+| PUT | `/api/tasks/order` | 同一列内のタスクを並び替え |
+| DELETE | `/api/tasks/{id}` | タスクを削除（ゴミ箱に移動） |
+| POST | `/api/tasks/{id}/restore` | ゴミ箱のタスクを復元 |
+| DELETE | `/api/tasks/{id}/permanent` | タスクを完全削除 |
 
-詳細（レスポンス例など）は [docs/basic-design.md 2章](docs/basic-design.md#2-api設計) を参照。
+詳細（リクエスト・レスポンス例など）は [docs/basic-design.md 2章](docs/basic-design.md#2-api設計) を参照。
 
 ## 開発ルール
 
