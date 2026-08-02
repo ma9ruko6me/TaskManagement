@@ -32,7 +32,7 @@
 | フレームワーク | Spring Boot 4.1.x（2026年6月リリース時点の最新） | Java/Springでのデファクトスタンダード。DI・自動設定により最小構成で REST API を構築できる。Java 17以上が必須でJava 26まで対応しており、Java 25と組み合わせ可能 |
 | ビルドツール | Gradle（Groovy DSL） | 指定 |
 | Web | Spring Web（REST API, JSON） | フロントエンド（React）とはREST + JSONで疎結合に連携する |
-| ORM／永続化 | Spring Data JPA + Hibernate | List/Taskのようなシンプルなリレーショナルモデルに対し、ボイラープレートの少ないリポジトリ実装が可能 |
+| ORM／永続化 | Spring Data JPA + Hibernate | Taskのようなシンプルなリレーショナルモデルに対し、ボイラープレートの少ないリポジトリ実装が可能 |
 | マイグレーション | Flyway | スキーマ変更をバージョン管理し、変更履歴を学習課題として残せる |
 | バリデーション | spring-boot-starter-validation | タイトル必須・優先度enumなど入力チェックを宣言的に実装できる |
 | API仕様書 | springdoc-openapi（Swagger UI） | フロントエンドと分離開発する際に、API仕様をブラウザから確認・試行できる |
@@ -100,10 +100,15 @@
     "priority": "HIGH",
     "position": 0,
     "createdAt": "2026-07-31T10:00:00",
-    "updatedAt": "2026-07-31T10:00:00"
+    "updatedAt": "2026-07-31T10:00:00",
+    "deletedAt": null,
+    "completedAt": null,
+    "archivedAt": null
   }
 ]
 ```
+
+`deletedAt`／`completedAt`／`archivedAt`は、それぞれ論理削除（ゴミ箱）・完了・アーカイブへの移動が行われるまでは`null`を返す。
 
 ### 2.3 GET /tasks/{id}
 
@@ -192,7 +197,14 @@
 
 ### 2.9 GET /tasks/completed
 
-タスクを`DONE`に更新すると`completedAt`が設定される。一定期間経過後（または任意のタイミングで）アーカイブ対象となったタスクは`archivedAt`が設定され、通常のボード表示（`GET /tasks`）からは除外され、本エンドポイントの一覧にのみ表示される。表示・保持期間の仕様詳細は[要件定義書](requirements.md)を参照。
+タスクを`DONE`に更新すると`completedAt`が設定される。`archivedAt`が未設定かつ`status`が`DONE`のタスクは、毎日4:00（`TaskCompletedArchiveScheduler`、cron `0 0 4 * * *`）に無条件でアーカイブ対象となり`archivedAt`が設定される。アーカイブ後は通常のボード表示（`GET /tasks`）からは除外され、本エンドポイントの一覧にのみ表示される。
+
+ゴミ箱・アーカイブそれぞれについて、以下のスケジュールで保持期間経過後のデータを自動的に完全削除する（`application.yml`の`task.trash.retention-days` / `task.archive.retention-days`、いずれも既定30日）。
+
+| 対象 | 保持期間 | 実行スケジュール（cron） | 実行クラス |
+|------|---------|--------------------------|-----------|
+| ゴミ箱（論理削除） | 30日 | `0 0 3 * * *`（毎日3:00） | `TaskTrashPurgeScheduler` |
+| 完了アーカイブ | 30日 | `0 10 4 * * *`（毎日4:10） | `TaskArchivePurgeScheduler` |
 
 ### 2.10 API仕様書（Swagger UI）
 
@@ -218,6 +230,9 @@ springdoc-openapiにより、バックエンド起動後に以下で仕様を確
 | position | INTEGER | NOT NULL | リスト内の表示順 |
 | created_at | TIMESTAMP | NOT NULL, DEFAULT now() | 作成日時 |
 | updated_at | TIMESTAMP | NOT NULL, DEFAULT now() | 更新日時 |
+| deleted_at | TIMESTAMP | | 論理削除日時（ゴミ箱移動、`V3`で追加） |
+| completed_at | TIMESTAMP | | 完了（`DONE`）日時（`V4`で追加） |
+| archived_at | TIMESTAMP | | 完了アーカイブへの移動日時（`V4`で追加） |
 
 インデックスは現時点では主キー（`id`）のみ。今後、`status`＋`position`での一覧取得が増える場合は複合インデックスの追加を検討する。
 
