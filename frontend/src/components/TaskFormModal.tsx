@@ -131,11 +131,11 @@ export function TaskFormModal({ open, onClose, mode, status, task }: TaskFormMod
         className="m-auto rounded-lg p-0 backdrop:bg-black/40"
       >
         <form onSubmit={handleSubmit} className="w-80 p-4">
-          <h2 className="text-sm font-semibold text-slate-900">
+          <h2 className="text-sm font-semibold text-text">
             {mode === "create" ? "タスクを追加" : "タスクを編集"}
           </h2>
 
-          <label className="mt-3 block text-xs font-medium text-slate-700">
+          <label className="mt-3 block text-xs font-medium text-text-muted">
             タイトル
             <input
               type="text"
@@ -145,36 +145,36 @@ export function TaskFormModal({ open, onClose, mode, status, task }: TaskFormMod
                 setTitle(e.target.value);
                 setTitleError(null);
               }}
-              className="mt-1 w-full rounded-md border border-slate-200 px-2 py-1 text-sm text-slate-900"
+              className="mt-1 w-full rounded-md border border-border px-2 py-1 text-sm text-text"
             />
           </label>
-          {titleError && <p className="mt-1 text-xs text-red-600">{titleError}</p>}
+          {titleError && <p className="mt-1 text-xs text-danger">{titleError}</p>}
 
-          <label className="mt-3 block text-xs font-medium text-slate-700">
+          <label className="mt-3 block text-xs font-medium text-text-muted">
             詳細説明
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="mt-1 w-full rounded-md border border-slate-200 px-2 py-1 text-sm text-slate-900"
+              className="mt-1 w-full rounded-md border border-border px-2 py-1 text-sm text-text"
             />
           </label>
 
-          <label className="mt-3 block text-xs font-medium text-slate-700">
+          <label className="mt-3 block text-xs font-medium text-text-muted">
             期限日
             <input
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className="mt-1 w-full rounded-md border border-slate-200 px-2 py-1 text-sm text-slate-900"
+              className="mt-1 w-full rounded-md border border-border px-2 py-1 text-sm text-text"
             />
           </label>
 
-          <label className="mt-3 block text-xs font-medium text-slate-700">
+          <label className="mt-3 block text-xs font-medium text-text-muted">
             優先度
             <select
               value={priority}
               onChange={(e) => setPriority(e.target.value as Priority)}
-              className="mt-1 w-full rounded-md border border-slate-200 px-2 py-1 text-sm text-slate-900"
+              className="mt-1 w-full rounded-md border border-border px-2 py-1 text-sm text-text"
             >
               {PRIORITY_OPTIONS.map((option) => (
                 <option key={option} value={option}>
@@ -184,7 +184,7 @@ export function TaskFormModal({ open, onClose, mode, status, task }: TaskFormMod
             </select>
           </label>
 
-          {serverError && <p className="mt-3 text-xs text-red-600">{serverError}</p>}
+          {serverError && <p className="mt-3 text-xs text-danger">{serverError}</p>}
 
           <div className="mt-4 flex items-center justify-between gap-2">
             {mode === "edit" ? (
@@ -192,7 +192,7 @@ export function TaskFormModal({ open, onClose, mode, status, task }: TaskFormMod
                 type="button"
                 onClick={handleDeleteClick}
                 disabled={deleteTask.isPending}
-                className="rounded-md px-3 py-1.5 text-sm text-red-600 disabled:opacity-50"
+                className="rounded-md px-3 py-1.5 text-sm text-danger disabled:opacity-50"
               >
                 削除
               </button>
@@ -203,14 +203,14 @@ export function TaskFormModal({ open, onClose, mode, status, task }: TaskFormMod
               <button
                 type="button"
                 onClick={handleClose}
-                className="rounded-md px-3 py-1.5 text-sm text-slate-600"
+                className="rounded-md px-3 py-1.5 text-sm text-text-muted"
               >
                 キャンセル
               </button>
               <button
                 type="submit"
                 disabled={isPending}
-                className="rounded-md bg-slate-900 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+                className="rounded-md bg-accent px-3 py-1.5 text-sm text-white disabled:opacity-50"
               >
                 {mode === "create" ? "追加" : "保存"}
               </button>

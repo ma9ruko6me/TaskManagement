@@ -30,15 +30,15 @@ export function CompletedView() {
   }
 
   if (isLoading) {
-    return <p className="p-6 text-sm text-slate-500">読み込み中...</p>;
+    return <p className="p-6 text-sm text-text-muted">読み込み中...</p>;
   }
 
   if (isError || !tasks) {
-    return <p className="p-6 text-sm text-red-600">完了済み一覧の取得に失敗しました。</p>;
+    return <p className="p-6 text-sm text-danger">完了済み一覧の取得に失敗しました。</p>;
   }
 
   if (tasks.length === 0) {
-    return <p className="p-6 text-sm text-slate-400">完了済みタスクはありません</p>;
+    return <p className="p-6 text-sm text-text-muted">完了済みタスクはありません</p>;
   }
 
   return (
@@ -48,16 +48,16 @@ export function CompletedView() {
           <div
             key={task.id}
             onClick={() => setDetailTask(task)}
-            className="flex w-64 cursor-pointer flex-col rounded-md border border-slate-200 bg-white p-3 shadow-sm"
+            className="flex w-64 cursor-pointer flex-col rounded-xl border border-border bg-surface p-3 shadow-sm"
           >
-            <p className="text-sm font-medium text-slate-900">{task.title}</p>
+            <p className="text-sm font-medium text-text">{task.title}</p>
             <div className="mt-2 flex items-center justify-between text-xs">
               <span
                 className={`rounded-full px-2 py-0.5 font-medium ${PRIORITY_STYLES[task.priority]}`}
               >
                 {PRIORITY_LABELS[task.priority]}
               </span>
-              <span className="text-slate-500">完了日時: {formatCompletedAt(task.completedAt)}</span>
+              <span className="text-text-muted">完了日時: {formatCompletedAt(task.completedAt)}</span>
             </div>
           </div>
         ))}

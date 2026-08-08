@@ -82,7 +82,7 @@ export function BoardColumn({
     const placeholder = (
       <div
         key="placeholder"
-        className="h-16 rounded-md border-2 border-dashed border-slate-300"
+        className="h-16 rounded-xl border-2 border-dashed border-border"
       />
     );
 
@@ -99,11 +99,11 @@ export function BoardColumn({
   }
 
   return (
-    <div className={`flex w-72 shrink-0 flex-col rounded-lg p-3 ${isDropTarget ? "bg-slate-100" : "bg-slate-50"}`}>
+    <div className={`flex w-72 shrink-0 flex-col rounded-2xl p-3 ${isDropTarget ? "bg-surface-hover" : "bg-surface-subtle"}`}>
       <div className="mb-3 flex items-center justify-between px-1">
         <div className="flex items-center gap-2">
-          <h2 className="text-sm font-semibold text-slate-700">{title}</h2>
-          <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600">
+          <h2 className="text-sm font-semibold text-text">{title}</h2>
+          <span className="rounded-full bg-border px-2 py-0.5 text-xs font-medium text-text-muted">
             {tasks.length}
           </span>
         </div>
@@ -111,21 +111,21 @@ export function BoardColumn({
           <button
             type="button"
             onClick={() => onSort(status, "priority")}
-            className="rounded-md px-1.5 py-0.5 text-xs font-medium text-slate-500 hover:bg-slate-200"
+            className="rounded-md px-1.5 py-0.5 text-xs font-medium text-text-muted hover:bg-surface-hover"
           >
             優先度順
           </button>
           <button
             type="button"
             onClick={() => onSort(status, "dueDate")}
-            className="rounded-md px-1.5 py-0.5 text-xs font-medium text-slate-500 hover:bg-slate-200"
+            className="rounded-md px-1.5 py-0.5 text-xs font-medium text-text-muted hover:bg-surface-hover"
           >
             期日順
           </button>
           <button
             type="button"
             onClick={() => setModalState({ mode: "create" })}
-            className="rounded-md px-1.5 text-sm font-medium text-slate-500 hover:bg-slate-200"
+            className="rounded-md px-1.5 text-sm font-medium text-text-muted hover:bg-surface-hover"
             aria-label={`${title}にタスクを追加`}
           >
             ＋
@@ -138,7 +138,7 @@ export function BoardColumn({
         className="flex min-h-8 flex-1 flex-col gap-2"
       >
         {tasks.length === 0 && placeholderBeforeTaskId === undefined ? (
-          <p className="px-1 text-xs text-slate-400">タスクがありません</p>
+          <p className="px-1 text-xs text-text-muted">タスクがありません</p>
         ) : (
           renderTasksWithPlaceholder()
         )}
