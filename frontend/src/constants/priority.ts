@@ -1,9 +1,9 @@
 import type { Priority } from "../types/task";
 
 export const PRIORITY_STYLES: Record<Priority, string> = {
-  HIGH: "bg-red-100 text-red-700",
-  MEDIUM: "bg-amber-100 text-amber-700",
-  LOW: "bg-slate-100 text-slate-700",
+  HIGH: "bg-priority-high-bg text-priority-high-text",
+  MEDIUM: "bg-priority-medium-bg text-priority-medium-text",
+  LOW: "bg-priority-low-bg text-priority-low-text",
 };
 
 export const PRIORITY_LABELS: Record<Priority, string> = {

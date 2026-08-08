@@ -15,9 +15,9 @@ function App() {
   const [view, setView] = useState<View>('board')
 
   return (
-    <div className="min-h-screen bg-white">
-      <header className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
-        <h1 className="text-xl font-semibold text-slate-900">Task Management</h1>
+    <div className="min-h-screen bg-bg">
+      <header className="flex items-center justify-between border-b border-border px-6 py-4">
+        <h1 className="text-xl font-semibold text-text">Task Management</h1>
         <nav className="flex gap-2">
           {NAV_ITEMS.map((item) => (
             <button
@@ -26,8 +26,8 @@ function App() {
               onClick={() => setView(item.view)}
               className={`rounded-md border px-3 py-1.5 text-sm ${
                 view === item.view
-                  ? 'border-slate-900 bg-slate-900 text-white'
-                  : 'border-slate-200 text-slate-600 hover:bg-slate-100'
+                  ? 'border-accent bg-accent text-white'
+                  : 'border-border text-text-muted hover:bg-surface-hover'
               }`}
             >
               {item.label}

@@ -27,15 +27,15 @@ export function TrashView() {
   }
 
   if (isLoading) {
-    return <p className="p-6 text-sm text-slate-500">読み込み中...</p>;
+    return <p className="p-6 text-sm text-text-muted">読み込み中...</p>;
   }
 
   if (isError || !tasks) {
-    return <p className="p-6 text-sm text-red-600">ゴミ箱の取得に失敗しました。</p>;
+    return <p className="p-6 text-sm text-danger">ゴミ箱の取得に失敗しました。</p>;
   }
 
   if (tasks.length === 0) {
-    return <p className="p-6 text-sm text-slate-400">ゴミ箱は空です</p>;
+    return <p className="p-6 text-sm text-text-muted">ゴミ箱は空です</p>;
   }
 
   return (
@@ -45,16 +45,16 @@ export function TrashView() {
           <div
             key={task.id}
             onClick={() => setDetailTask(task)}
-            className="flex w-64 cursor-pointer flex-col rounded-md border border-slate-200 bg-white p-3 shadow-sm"
+            className="flex w-64 cursor-pointer flex-col rounded-xl border border-border bg-surface p-3 shadow-sm"
           >
-            <p className="text-sm font-medium text-slate-900">{task.title}</p>
+            <p className="text-sm font-medium text-text">{task.title}</p>
             <div className="mt-2 flex items-center justify-between text-xs">
               <span
                 className={`rounded-full px-2 py-0.5 font-medium ${PRIORITY_STYLES[task.priority]}`}
               >
                 {PRIORITY_LABELS[task.priority]}
               </span>
-              <span className="text-slate-500">削除日時: {formatDeletedAt(task.deletedAt)}</span>
+              <span className="text-text-muted">削除日時: {formatDeletedAt(task.deletedAt)}</span>
             </div>
             <div className="mt-3 flex justify-end gap-2">
               <button
@@ -64,7 +64,7 @@ export function TrashView() {
                   restoreTask.mutate(task.id);
                 }}
                 disabled={restoreTask.isPending}
-                className="rounded-md px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 disabled:opacity-50"
+                className="rounded-md px-3 py-1.5 text-sm text-text-muted hover:bg-surface-hover disabled:opacity-50"
               >
                 復元
               </button>
@@ -75,7 +75,7 @@ export function TrashView() {
                   setConfirmTarget(task);
                 }}
                 disabled={permanentlyDeleteTask.isPending}
-                className="rounded-md px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 disabled:opacity-50"
+                className="rounded-md px-3 py-1.5 text-sm text-danger hover:bg-danger-bg disabled:opacity-50"
               >
                 完全に削除
               </button>

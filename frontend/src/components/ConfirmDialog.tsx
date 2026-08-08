@@ -36,20 +36,20 @@ export function ConfirmDialog({
       className="m-auto rounded-lg p-0 backdrop:bg-black/40"
     >
       <div className="w-72 p-4">
-        <h2 className="text-sm font-semibold text-slate-900">{title}</h2>
-        <p className="mt-2 text-sm text-slate-600">{message}</p>
+        <h2 className="text-sm font-semibold text-text">{title}</h2>
+        <p className="mt-2 text-sm text-text-muted">{message}</p>
         <div className="mt-4 flex justify-end gap-2">
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-md px-3 py-1.5 text-sm text-slate-600"
+            className="rounded-md px-3 py-1.5 text-sm text-text-muted"
           >
             {cancelLabel}
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className="rounded-md bg-red-600 px-3 py-1.5 text-sm text-white"
+            className="rounded-md bg-danger px-3 py-1.5 text-sm text-white"
           >
             {confirmLabel}
           </button>

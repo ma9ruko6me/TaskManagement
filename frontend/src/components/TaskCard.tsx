@@ -39,7 +39,7 @@ export function TaskCard({ task, isDragging, onClick, onDragStart, onDragEnd }: 
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
         onClick={onClick}
-        className={`group relative cursor-grab rounded-md border border-slate-200 bg-white p-3 shadow-sm active:cursor-grabbing ${
+        className={`group relative cursor-grab rounded-xl border border-border bg-surface p-3 shadow-sm active:cursor-grabbing ${
           isDragging ? "opacity-40" : ""
         }`}
       >
@@ -47,16 +47,16 @@ export function TaskCard({ task, isDragging, onClick, onDragStart, onDragEnd }: 
           type="button"
           onClick={handleDeleteClick}
           aria-label="タスクを削除"
-          className="absolute right-2 top-2 rounded-md px-1 text-xs text-slate-300 opacity-0 hover:bg-slate-100 hover:text-red-600 group-hover:opacity-100"
+          className="absolute right-2 top-2 rounded-md px-1 text-xs text-text-muted opacity-0 hover:bg-surface-hover hover:text-danger group-hover:opacity-100"
         >
           🗑
         </button>
-        <p className="pr-5 text-sm font-medium text-slate-900">{task.title}</p>
+        <p className="pr-5 text-sm font-medium text-text">{task.title}</p>
         <div className="mt-2 flex items-center justify-between text-xs">
           <span className={`rounded-full px-2 py-0.5 font-medium ${PRIORITY_STYLES[task.priority]}`}>
             {PRIORITY_LABELS[task.priority]}
           </span>
-          <span className="text-slate-500">{formatDueDate(task.dueDate)}</span>
+          <span className="text-text-muted">{formatDueDate(task.dueDate)}</span>
         </div>
       </div>
       <ConfirmDialog

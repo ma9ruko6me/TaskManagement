@@ -112,12 +112,12 @@ export function Board() {
   }
 
   if (isLoading) {
-    return <p className="p-6 text-sm text-slate-500">読み込み中...</p>;
+    return <p className="p-6 text-sm text-text-muted">読み込み中...</p>;
   }
 
   if (isError || !tasks) {
     return (
-      <p className="p-6 text-sm text-red-600">
+      <p className="p-6 text-sm text-danger">
         タスクの取得に失敗しました。
       </p>
     );
